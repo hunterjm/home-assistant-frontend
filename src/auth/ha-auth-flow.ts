@@ -18,6 +18,7 @@ import "../components/ha-markdown";
 import { AuthProvider } from "../data/auth";
 import {
   DataEntryFlowStep,
+  DataEntryFlowStepExternal,
   DataEntryFlowStepForm,
 } from "../data/data_entry_flow";
 import { litLocalizeLiteMixin } from "../mixins/lit-localize-lite-mixin";
@@ -59,6 +60,10 @@ class HaAuthFlow extends litLocalizeLiteMixin(LitElement) {
     }
 
     const oldStep = changedProps.get("_step") as HaAuthFlow["_step"];
+
+    if (this._step.type === "external") {
+      this._externalStep(this._step);
+    }
 
     if (
       !oldStep ||
@@ -192,6 +197,14 @@ class HaAuthFlow extends litLocalizeLiteMixin(LitElement) {
             )}
           ></ha-markdown>
         `;
+      case "external":
+        return html` ${this._computeStepDescription(step)
+          ? html`
+              <ha-markdown
+                .content=${this._computeStepDescription(step)}
+              ></ha-markdown>
+            `
+          : html``}`;
       case "form":
         return html`
           ${this._computeStepDescription(step)
@@ -309,11 +322,34 @@ class HaAuthFlow extends litLocalizeLiteMixin(LitElement) {
     document.location.assign(url);
   }
 
+  private _externalStep(step: DataEntryFlowStepExternal) {
+    const external = window.open(step.url);
+    if (external) {
+      window.addEventListener(
+        "message",
+        async (message: MessageEvent) => {
+          if (
+            message.data.type === "externalCallback" &&
+            message.source === external
+          ) {
+            await this._handleSubmit();
+          }
+        },
+        {
+          once: true,
+        }
+      );
+    } else {
+      this._state = "error";
+      this._errorMessage = "Login window was blocked";
+    }
+  }
+
   private _stepDataChanged(ev: CustomEvent) {
     this._stepData = ev.detail.value;
   }
 
-  private _computeStepDescription(step: DataEntryFlowStepForm) {
+  private _computeStepDescription(step: DataEntryFlowStep) {
     const resourceKey = `ui.panel.page-authorize.form.providers.${step.handler[0]}.step.${step.step_id}.description`;
     const args: string[] = [];
     const placeholders = step.description_placeholders || {};
@@ -348,12 +384,12 @@ class HaAuthFlow extends litLocalizeLiteMixin(LitElement) {
     this._providerChanged(this.authProvider);
   }
 
-  private async _handleSubmit(ev: Event) {
-    ev.preventDefault();
+  private async _handleSubmit(ev?: Event) {
+    ev?.preventDefault();
     if (this._step == null) {
       return;
     }
-    if (this._step.type !== "form") {
+    if (!["external", "form"].includes(this._step.type)) {
       this._providerChanged(this.authProvider);
       return;
     }
