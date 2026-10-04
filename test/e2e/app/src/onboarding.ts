@@ -249,14 +249,22 @@ export async function setupOnboardingMocks(
   return calls;
 }
 
-export async function openOnboarding(page: Page, baseURL: string) {
+export async function openOnboarding(
+  page: Page,
+  baseURL: string,
+  authorizationParams: Record<string, string> = {}
+) {
   const origin = new URL(baseURL).origin;
   const state = btoa(
     JSON.stringify({ hassUrl: origin, clientId: `${origin}/` })
   );
-  await page.goto(
-    `/onboarding.html?client_id=${encodeURIComponent(`${origin}/`)}&redirect_uri=${encodeURIComponent(`${origin}/dashboard.html?auth_callback=1`)}&state=${encodeURIComponent(state)}`
-  );
+  const params = new URLSearchParams({
+    client_id: `${origin}/`,
+    redirect_uri: `${origin}/dashboard.html?auth_callback=1`,
+    state,
+    ...authorizationParams,
+  });
+  await page.goto(`/onboarding.html?${params}`);
   await expect(page.locator("onboarding-welcome")).toBeAttached({
     timeout: SHELL_TIMEOUT,
   });

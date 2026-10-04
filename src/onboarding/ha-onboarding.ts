@@ -419,6 +419,10 @@ class HaOnboarding extends litLocalizeLiteMixin(HassElement) {
         result = await onboardIntegrationStep(this.hass!, {
           client_id: authParams.client_id!,
           redirect_uri: authParams.redirect_uri!,
+          resource: authParams.resource,
+          response_type: authParams.response_type,
+          code_challenge: authParams.code_challenge,
+          code_challenge_method: authParams.code_challenge_method,
         });
       } catch (err: any) {
         this.hass!.connection.close();

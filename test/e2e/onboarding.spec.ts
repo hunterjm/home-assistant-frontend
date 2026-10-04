@@ -117,3 +117,46 @@ test("chooses analytics consent using named switches", async ({
   });
   expectNoPageErrors(errors);
 });
+
+test("preserves PKCE and resource through onboarding", async ({
+  page,
+  baseURL,
+}) => {
+  const errors = trackPageErrors(page);
+  const resource = "https://home-assistant.example";
+  const calls = await setupOnboardingMocks(page);
+  const redirectUri = "https://client.example/oauth/callback";
+  const authorizationParams = {
+    client_id: "https://client.example/oauth/client-metadata.json",
+    redirect_uri: redirectUri,
+    resource,
+    response_type: "code",
+    code_challenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+    code_challenge_method: "S256",
+    state: "client-state",
+  };
+  await page.route("https://client.example/oauth/callback?**", (route) =>
+    route.fulfill({ contentType: "text/plain", body: "Authorized" })
+  );
+
+  await openOnboarding(page, baseURL!, authorizationParams);
+  await createOwner(page);
+  await completeCoreConfig(page);
+  await completeAnalytics(page);
+
+  await finishIntegrations(page);
+
+  await expect(page).toHaveURL(
+    `${redirectUri}?code=dashboard-auth-code&storeToken=true&state=client-state`
+  );
+  expect(calls.integration).toEqual({
+    client_id: "https://client.example/oauth/client-metadata.json",
+    redirect_uri: redirectUri,
+    resource,
+    response_type: "code",
+    code_challenge: authorizationParams.code_challenge,
+    code_challenge_method: "S256",
+  });
+  expect(calls.tokenRequests).toHaveLength(1);
+  expectNoPageErrors(errors);
+});
