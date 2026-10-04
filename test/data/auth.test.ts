@@ -78,7 +78,7 @@ describe("redirectWithAuthCode", () => {
     expect(callbackUrl.searchParams.get("state")).toBe(state);
   });
 
-  it("preserves an empty state", () => {
+  it("preserves an empty state and appends the issuer", () => {
     const assign = vi.fn();
     vi.stubGlobal("document", { location: { assign } });
 
@@ -86,11 +86,12 @@ describe("redirectWithAuthCode", () => {
       "https://client.example/callback?existing=value",
       "authorization code",
       "",
-      false
+      false,
+      "https://home-assistant.example"
     );
 
     expect(assign).toHaveBeenCalledWith(
-      "https://client.example/callback?existing=value&code=authorization%20code&state="
+      "https://client.example/callback?existing=value&code=authorization%20code&state=&iss=https%3A%2F%2Fhome-assistant.example"
     );
   });
 

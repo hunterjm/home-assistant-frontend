@@ -220,3 +220,35 @@ for (const { name, resume } of [
     }
   );
 }
+
+test("preserves the issuer through onboarding", async ({ page, baseURL }) => {
+  const errors = trackPageErrors(page);
+  const issuer = "https://home-assistant.example";
+  const calls = await setupOnboardingMocks(page, issuer);
+  const redirectUri = "https://client.example/oauth/callback";
+  const authorizationParams = {
+    client_id: "https://client.example/oauth/client-metadata.json",
+    redirect_uri: redirectUri,
+    state: "",
+  };
+  await page.route("https://client.example/oauth/callback?**", (route) =>
+    route.fulfill({ contentType: "text/plain", body: "Authorized" })
+  );
+
+  await openOnboarding(page, baseURL!, authorizationParams);
+  await createOwner(page);
+  await completeCoreConfig(page);
+  await completeAnalytics(page);
+
+  await finishIntegrations(page);
+
+  await expect(page).toHaveURL(
+    `${redirectUri}?code=dashboard-auth-code&state=&iss=${encodeURIComponent(issuer)}&storeToken=true`
+  );
+  expect(calls.integration).toEqual({
+    client_id: "https://client.example/oauth/client-metadata.json",
+    redirect_uri: redirectUri,
+  });
+  expect(calls.tokenRequests).toHaveLength(1);
+  expectNoPageErrors(errors);
+});

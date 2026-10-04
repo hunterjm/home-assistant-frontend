@@ -173,7 +173,8 @@ const handleWebSocketMessage = (
 };
 
 export async function setupOnboardingMocks(
-  page: Page
+  page: Page,
+  issuer?: string
 ): Promise<OnboardingCalls> {
   const calls: OnboardingCalls = { tokenRequests: [] };
   const completedSteps = new Set<string>();
@@ -232,7 +233,7 @@ export async function setupOnboardingMocks(
       completedSteps.add("integration");
       calls.integration = request.postDataJSON() as Record<string, unknown>;
       await route.fulfill({
-        json: { auth_code: "dashboard-auth-code" },
+        json: { auth_code: "dashboard-auth-code", issuer },
       });
       return;
     }

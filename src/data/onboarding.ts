@@ -19,6 +19,7 @@ export interface OnboardingUserStepResponse {
 
 export interface OnboardingIntegrationStepResponse {
   auth_code: string;
+  issuer?: string;
 }
 
 export interface OnboardingAnalyticsStepResponse {}

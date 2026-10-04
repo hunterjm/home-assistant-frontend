@@ -462,7 +462,8 @@ class HaOnboarding extends litLocalizeLiteMixin(HassElement) {
         authParams.redirect_uri!,
         result.auth_code,
         authParams.state,
-        true
+        true,
+        result.issuer
       );
     }
   }

@@ -87,7 +87,8 @@ export const redirectWithAuthCode = (
   url: string,
   authCode: string,
   oauth2State: string | undefined,
-  storeToken: boolean
+  storeToken: boolean,
+  issuer?: string
 ) => {
   // OAuth 2: 3.1.2 we need to retain query component of a redirect URI
   if (!url.includes("?")) {
@@ -100,6 +101,9 @@ export const redirectWithAuthCode = (
 
   if (oauth2State !== undefined) {
     url += `&state=${encodeURIComponent(oauth2State)}`;
+  }
+  if (issuer) {
+    url += `&iss=${encodeURIComponent(issuer)}`;
   }
   if (storeToken) {
     url += `&storeToken=true`;

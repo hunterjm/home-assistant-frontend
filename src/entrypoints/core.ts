@@ -45,6 +45,7 @@ const clearUrlParams = () => {
     // Remove all data from QueryCallbackData type
     searchParams.delete("auth_callback");
     searchParams.delete("code");
+    searchParams.delete("iss");
     searchParams.delete("state");
     searchParams.delete("storeToken");
     changed = true;
