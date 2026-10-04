@@ -35,6 +35,8 @@ export class HaAuthFlow extends LitElement {
 
   @property({ attribute: false }) public redirectUri?: string;
 
+  @property({ attribute: false }) public resource?: string;
+
   @property({ attribute: false }) public responseType?: string;
 
   @property({ attribute: false }) public codeChallenge?: string;
@@ -310,6 +312,7 @@ export class HaAuthFlow extends LitElement {
           code_challenge: this.codeChallenge,
           code_challenge_method: this.codeChallengeMethod,
           redirect_uri: this.redirectUri,
+          resource: this.resource,
           response_type: this.responseType,
           state: this.oauth2State,
         },
