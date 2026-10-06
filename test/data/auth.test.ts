@@ -53,6 +53,23 @@ describe("createLoginFlow", () => {
 });
 
 describe("redirectWithAuthCode", () => {
+  it("preserves an empty state and appends the issuer", () => {
+    const assign = vi.fn();
+    vi.stubGlobal("document", { location: { assign } });
+
+    redirectWithAuthCode(
+      "https://client.example/callback?existing=value",
+      "authorization code",
+      "",
+      false,
+      "https://home-assistant.example"
+    );
+
+    expect(assign).toHaveBeenCalledWith(
+      "https://client.example/callback?existing=value&code=authorization%20code&state=&iss=https%3A%2F%2Fhome-assistant.example"
+    );
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -78,7 +95,7 @@ describe("redirectWithAuthCode", () => {
     expect(callbackUrl.searchParams.get("state")).toBe(state);
   });
 
-  it("preserves an empty state and appends the issuer", () => {
+  it("preserves an empty state", () => {
     const assign = vi.fn();
     vi.stubGlobal("document", { location: { assign } });
 
@@ -86,12 +103,11 @@ describe("redirectWithAuthCode", () => {
       "https://client.example/callback?existing=value",
       "authorization code",
       "",
-      false,
-      "https://home-assistant.example"
+      false
     );
 
     expect(assign).toHaveBeenCalledWith(
-      "https://client.example/callback?existing=value&code=authorization%20code&state=&iss=https%3A%2F%2Fhome-assistant.example"
+      "https://client.example/callback?existing=value&code=authorization%20code&state="
     );
   });
 
