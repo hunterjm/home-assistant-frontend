@@ -4,12 +4,12 @@ import type { RefreshTokenType } from "./refresh_token";
 
 export interface AuthUrlSearchParams {
   client_id?: string;
+  redirect_uri?: string;
+  state?: string;
   code_challenge?: string;
   code_challenge_method?: string;
-  redirect_uri?: string;
-  resource?: string;
   response_type?: string;
-  state?: string;
+  resource?: string;
 }
 
 export interface AuthProvider {
@@ -54,15 +54,25 @@ export const fetchAuthProviders = () =>
   });
 
 export const createLoginFlow = (
-  request: AuthUrlSearchParams,
-  handler: (string | null)[]
+  client_id: string | undefined,
+  redirect_uri: string | undefined,
+  handler: (string | null)[],
+  code_challenge?: string,
+  code_challenge_method?: string,
+  response_type?: string,
+  resource?: string
 ) =>
   fetch("/auth/login_flow", {
     method: "POST",
     credentials: "same-origin",
     body: JSON.stringify({
-      ...request,
+      client_id,
       handler,
+      redirect_uri,
+      code_challenge,
+      code_challenge_method,
+      response_type,
+      resource,
     }),
   });
 
@@ -94,7 +104,7 @@ export const redirectWithAuthCode = (
 
   url += `code=${encodeURIComponent(authCode)}`;
 
-  if (oauth2State) {
+  if (oauth2State !== undefined) {
     url += `&state=${encodeURIComponent(oauth2State)}`;
   }
   if (storeToken) {
