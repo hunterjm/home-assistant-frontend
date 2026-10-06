@@ -176,6 +176,7 @@ export async function setupOnboardingMocks(
   page: Page
 ): Promise<OnboardingCalls> {
   const calls: OnboardingCalls = { tokenRequests: [] };
+  const completedSteps = new Set<string>();
 
   // The location step shows a map. This app builds with __DEMO__ true, so its
   // tiles come from the demo upstreams; answering those here keeps CI off the
@@ -195,7 +196,12 @@ export async function setupOnboardingMocks(
     const pathname = new URL(request.url()).pathname;
 
     if (pathname === "/api/onboarding") {
-      await route.fulfill({ json: onboardingSteps });
+      await route.fulfill({
+        json: onboardingSteps.map((step) => ({
+          ...step,
+          done: completedSteps.has(step.step),
+        })),
+      });
       return;
     }
     if (pathname === "/api/onboarding/installation_type") {
@@ -205,23 +211,29 @@ export async function setupOnboardingMocks(
       return;
     }
     if (pathname === "/api/onboarding/users") {
+      completedSteps.add("user");
       calls.user = request.postDataJSON() as Record<string, unknown>;
       await route.fulfill({ json: { auth_code: "onboarding-auth-code" } });
       return;
     }
     if (pathname === "/api/onboarding/core_config") {
+      completedSteps.add("core_config");
       calls.coreConfigCompleted = true;
       await route.fulfill({ json: {} });
       return;
     }
     if (pathname === "/api/onboarding/analytics") {
+      completedSteps.add("analytics");
       calls.analyticsCompleted = true;
       await route.fulfill({ json: {} });
       return;
     }
     if (pathname === "/api/onboarding/integration") {
+      completedSteps.add("integration");
       calls.integration = request.postDataJSON() as Record<string, unknown>;
-      await route.fulfill({ json: { auth_code: "dashboard-auth-code" } });
+      await route.fulfill({
+        json: { auth_code: "dashboard-auth-code" },
+      });
       return;
     }
 

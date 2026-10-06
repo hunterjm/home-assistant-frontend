@@ -1,9 +1,9 @@
 /* eslint-disable lit/prefer-static-styles */
 import { mdiOpenInNew } from "@mdi/js";
-import punycode from "punycode";
 import type { PropertyValues } from "lit";
 import { html, LitElement, nothing } from "lit";
 import { customElement, property, state } from "lit/decorators";
+import punycode from "punycode";
 import { applyThemesOnElement } from "../common/dom/apply_themes_on_element";
 import { extractSearchParamsObject } from "../common/url/search-params";
 import "../components/ha-alert";
@@ -31,15 +31,15 @@ export class HaAuthorize extends provideLiteI18nMixin(
 
   @property({ attribute: false }) public redirectUri?: string;
 
-  @property({ attribute: false }) public resource?: string;
-
-  @property({ attribute: false }) public responseType?: string;
+  @property({ attribute: false }) public oauth2State?: string;
 
   @property({ attribute: false }) public codeChallenge?: string;
 
   @property({ attribute: false }) public codeChallengeMethod?: string;
 
-  @property({ attribute: false }) public oauth2State?: string;
+  @property({ attribute: false }) public responseType?: string;
+
+  @property({ attribute: false }) public resource?: string;
 
   @property({ attribute: false }) public translationFragment = "page-authorize";
 
@@ -62,13 +62,11 @@ export class HaAuthorize extends provideLiteI18nMixin(
     if (query.redirect_uri) {
       this.redirectUri = query.redirect_uri;
     }
-    this.resource = query.resource;
-    this.responseType = query.response_type;
+    this.oauth2State = query.state;
     this.codeChallenge = query.code_challenge;
     this.codeChallengeMethod = query.code_challenge_method;
-    if (query.state) {
-      this.oauth2State = query.state;
-    }
+    this.responseType = query.response_type;
+    this.resource = query.resource;
   }
 
   protected render() {
@@ -196,11 +194,11 @@ export class HaAuthorize extends provideLiteI18nMixin(
             : html`<ha-auth-flow
                   .clientId=${this.clientId}
                   .redirectUri=${this.redirectUri}
-                  .resource=${this.resource}
-                  .responseType=${this.responseType}
+                  .oauth2State=${this.oauth2State}
                   .codeChallenge=${this.codeChallenge}
                   .codeChallengeMethod=${this.codeChallengeMethod}
-                  .oauth2State=${this.oauth2State}
+                  .responseType=${this.responseType}
+                  .resource=${this.resource}
                   .authProvider=${this._authProvider}
                   .initStoreToken=${this._preselectStoreToken}
                 ></ha-auth-flow>

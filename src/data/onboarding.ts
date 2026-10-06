@@ -1,6 +1,5 @@
 import type { HomeAssistant } from "../types";
 import { handleFetchPromise } from "../util/hass-call-api";
-import type { AuthUrlSearchParams } from "./auth";
 
 export interface InstallationType {
   installation_type:
@@ -83,9 +82,13 @@ export const onboardAnalyticsStep = (hass: HomeAssistant) =>
 
 export const onboardIntegrationStep = (
   hass: HomeAssistant,
-  params: Omit<AuthUrlSearchParams, "state"> & {
+  params: {
     client_id: string;
     redirect_uri: string;
+    code_challenge?: string;
+    code_challenge_method?: string;
+    resource?: string;
+    response_type?: string;
   }
 ) =>
   hass.callApi<OnboardingIntegrationStepResponse>(
